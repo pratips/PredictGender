@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# program to detect gender given name
 
 import codecs
 import numpy
@@ -38,18 +39,14 @@ def get_gender(dic_name_details):
 
 def extract_features(name):
         name=name.upper()
-#         return {
-#             'last_letter': name[-1],
-#             'last_two' : name[-2:],
-#             'last_three': name[-3:],
-#             'last_is_vowel' : (name[-1] in 'AEIOUY')
-#         }
         if name[-1] in 'AEIOUY':
             a = 1
         else:
             a = 0
             
-        return [ord(name[-1]) - 96, ord(name[-2]) - 96, ord(name[-3]) - 96, a]
+        return [ord(name[-1]) - 65, ord(name[-2]) - 65, ord(name[-3]) - 65, a, int(str(ord(name[-1]) - 65) + 
+                                                                                   str(ord(name[-2]) - 65) + 
+                                                                                   str(ord(name[-3]) - 65))]
     
 def generate_training_data(dic_name_gender):
     training_data = []
@@ -63,10 +60,6 @@ def generate_training_data(dic_name_gender):
             features = extract_features(name)
             training_data.append(features)
             
-#             if dic_name_gender[name] == 'male':
-#                 a = 1
-#             else:
-#                 a = 0
             training_label.append(le.transform([dic_name_gender[name]]))
 #             training_label.append(a)
     return numpy.array(training_data), numpy.array(training_label)
@@ -84,11 +77,6 @@ def train_model(training_data, training_label):
     print "y_test.shape ", y_test.shape
     print '\nTraining model through sklearn...'
 
-#     from sklearn import linear_model
-#     clf = linear_model.SGDClassifier()
-#     clf.fit(X_train, y_train)
-#     print clf.predict(X_test)
-#     print clf.score(X_test, y_test)
 
     start = timeit.default_timer()
     clf = RandomForestClassifier()
@@ -98,18 +86,6 @@ def train_model(training_data, training_label):
     stop = timeit.default_timer()
     print "Time RF ", stop - start, '\n'
     joblib.dump(clf, 'gender_model.pkl') 
-#     start = timeit.default_timer()
-#     clf = svm.LinearSVC()
-#     clf.fit(X_train, y_train)
-# #     print clf.predict(X_test[10])
-#     print "Accuracy SVM ",clf.score(X_test, y_test)
-#     stop = timeit.default_timer()
-#     print "Time SVM ", stop - start, '\n'
-#     
-#     clf = svm.SVC(decision_function_shape='ovo')
-#     clf.fit(X_train, y_train)
-#     print clf.predict(X_test[10])
-#     print clf.score(X_test, y_test)
     
     start = timeit.default_timer()
     gnb = GaussianNB()
@@ -118,21 +94,6 @@ def train_model(training_data, training_label):
     print "Accuracy NB ",gnb.score(X_test, y_test)
     stop = timeit.default_timer()
     print "Time NB ", stop - start, '\n'
-#     sys.exit()
-#     print X_test[10]
-#     print X_train[0]
-
-#     print 'Training model through pystruct...'
-
-#     from pystruct.learners import NSlackSSVM
-#     from pystruct.models import MultiClassClf
-#     
-#     clf = NSlackSSVM(MultiClassClf())
-# #     X_train = X_train[:4000]
-# #     y_train = y_train[:4000]
-#     clf.fit(X_train, y_train)
-#     print clf.predict(X_test)
-#     print clf.score(X_test, y_test)
     return clf
  
  
@@ -147,7 +108,7 @@ def predict_gender(test_str):
     return label
                         
 if __name__ == '__main__':
-    dic_name_details = read_file("ap-names-grouped.txt")
+    dic_name_details = read_file("name_stat.txt")
     dic_name_gender = get_gender(dic_name_details)
     training_data, training_label = generate_training_data(dic_name_gender)
     clf = train_model(training_data, training_label)
